@@ -27,8 +27,7 @@ declare(strict_types=1);
 
 namespace OC\AppFramework\Middleware;
 
-use OCP\AppFramework\Http\Events\LoadAdditionalScriptsEvent;
-use OCP\AppFramework\Http\Events\LoadAdditionalScriptsLoggedInEvent;
+use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\StandaloneTemplateResponse;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -63,13 +62,16 @@ class AdditionalScriptsMiddleware extends Middleware {
 		}
 
 		if ($response instanceof TemplateResponse) {
-			$this->dispatcher->dispatchTyped(new LoadAdditionalScriptsEvent());
-			$this->legacyDispatcher->dispatch(TemplateResponse::EVENT_LOAD_ADDITIONAL_SCRIPTS, new GenericEvent());
-
 			if (!($response instanceof StandaloneTemplateResponse) && $this->userSession->isLoggedIn()) {
-				$this->dispatcher->dispatchTyped(new LoadAdditionalScriptsLoggedInEvent());
-				$this->legacyDispatcher->dispatch(TemplateResponse::EVENT_LOAD_ADDITIONAL_SCRIPTS_LOGGEDIN, new GenericEvent());
+				$isLoggedIn = true;
+				$legacyEventName = TemplateResponse::EVENT_LOAD_ADDITIONAL_SCRIPTS_LOGGEDIN;
+			} else {
+				$isLoggedIn = false;
+				$legacyEventName = TemplateResponse::EVENT_LOAD_ADDITIONAL_SCRIPTS;
 			}
+
+			$this->dispatcher->dispatchTyped(new BeforeTemplateRenderedEvent($isLoggedIn));
+			$this->legacyDispatcher->dispatch($legacyEventName, new GenericEvent());
 		}
 
 		return $response;

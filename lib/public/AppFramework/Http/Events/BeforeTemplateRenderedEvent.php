@@ -5,6 +5,7 @@ declare(strict_types=1);
  * @copyright Copyright (c) 2020, Roeland Jago Douma <roeland@famdouma.nl>
  *
  * @author Roeland Jago Douma <roeland@famdouma.nl>
+ * @author Morris Jobke <hey@morrisjobke.de>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -27,5 +28,23 @@ namespace OCP\AppFramework\Http\Events;
 
 use OCP\EventDispatcher\Event;
 
-class LoadAdditionalScriptsEvent extends Event {
+/**
+ * The event is triggered before the rendering step of each TemplateResponse.
+ *
+ * @package OCP\AppFramework\Http\Events
+ * @since 20.0.0
+ */
+class BeforeTemplateRenderedEvent extends Event {
+	/** @var bool */
+	private $loggedIn;
+
+	public function __construct(bool $loggedIn) {
+		parent::__construct();
+
+		$this->loggedIn = $loggedIn;
+	}
+
+	public function isLoggedIn(): bool {
+		return $this->loggedIn;
+	}
 }
